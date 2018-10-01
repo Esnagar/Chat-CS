@@ -31,7 +31,8 @@ public class Server {
 
 	public Server(int port, ServerGUI sg) {
 		// GUI or not
-		this.sg = sg;
+    sg=null;
+		this.sg = null;
 		// the port
 		this.port = port;
 		// to display hh:mm:ss

@@ -39,7 +39,8 @@ public class Client  {
 		this.port = port;
 		this.username = username;
 		// save if we are in GUI mode or not
-		this.cg = cg;
+    cg=null;
+		this.cg = null;
 	}
 
 	/*
