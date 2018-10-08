@@ -31,7 +31,7 @@ public class Server {
 
 	public Server(int port, ServerGUI sg) {
 		// GUI or not
-    sg=null;
+        sg=null;
 		this.sg = null;
 		// the port
 		this.port = port;
