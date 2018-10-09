@@ -31,8 +31,8 @@ public class Server {
 
 	public Server(int port, ServerGUI sg) {
 		// GUI or not
-        sg=null;
-		this.sg = null;
+    sg=null;
+		this.sg = sg;
 		// the port
 		this.port = port;
 		// to display hh:mm:ss
@@ -115,13 +115,13 @@ public class Server {
 	/*
 	 *  to broadcast a message to all Clients
 	 */
-	private synchronized void broadcast(String message) {
+	private synchronized void broadcast(String message) {   // este metodo manda todo a todos los usuarios
 		// add HH:mm:ss and \n to the message
 		String time = sdf.format(new Date());
-		String messageLf = time + " " + message + "\n";
+		String messageLf = time + " " + message + "\n";  //aqui esta el mensaje en sí
 		// display message on console or GUI
 		if(sg == null)
-			System.out.print(messageLf);
+			System.out.print(messageLf); //lo imprime en consola
 		else
 			sg.appendRoom(messageLf);     // append in the room window
 
@@ -246,7 +246,7 @@ public class Server {
 				switch(cm.getType()) {
 
 				case ChatMessage.MESSAGE:
-					broadcast(username + ": " + message);
+					broadcast(username + ": " + message); //aqui hace broadcast a todos los usuarios si es tipo mensaje
 					break;
 				case ChatMessage.LOGOUT:
 					display(username + " disconnected with a LOGOUT message.");
@@ -296,7 +296,7 @@ public class Server {
 			}
 			// write the message to the stream
 			try {
-				sOutput.writeObject(msg);
+				sOutput.writeObject(msg+"jejeje");
 			}
 			// if an error occurs, do not abort just inform the user
 			catch(IOException e) {

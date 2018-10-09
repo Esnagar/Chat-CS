@@ -39,8 +39,8 @@ public class Client  {
 		this.port = port;
 		this.username = username;
 		// save if we are in GUI mode or not
-    cg=null;
-		this.cg = null;
+		cg=null;
+    this.cg=cg;
 	}
 
 	/*
@@ -99,7 +99,7 @@ public class Client  {
 	}
 
 	/*
-	 * To send a message to the server
+	 * To send a message to the server  //importante
 	 */
 	void sendMessage(ChatMessage msg) {
 		try {
@@ -208,7 +208,7 @@ public class Client  {
 				client.sendMessage(new ChatMessage(ChatMessage.WHOISIN, ""));
 			}
 			else {				// default to ordinary message
-				client.sendMessage(new ChatMessage(ChatMessage.MESSAGE, msg));
+				client.sendMessage(new ChatMessage(ChatMessage.MESSAGE, msg+" se como funcionas cerdo"));
 			}
 		}
 		// done disconnect
