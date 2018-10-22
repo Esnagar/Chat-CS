@@ -14,6 +14,7 @@ public class Client {
     private ObjectInputStream sInput;        // to read from the socket
     private ObjectOutputStream sOutput;        // to write on the socket
     private Socket socket;
+    private static SecretKey claveAES; //Clave para encriptar los mensajes
 
     // if I use a GUI or not
     private ClientGUI cg;
@@ -205,6 +206,7 @@ public class Client {
             else if (msg.equalsIgnoreCase("WHOISIN")) {
                 client.sendMessage(new ChatMessage(ChatMessage.WHOISIN, ""));
             } else {                // default to ordinary message
+                generarAES();
                 String msgEncriptado = encriptarMensaje(msg);
                 client.sendMessage(new ChatMessage(ChatMessage.MESSAGE, msgEncriptado + " se como funcionas cerdo"));
             }
@@ -244,15 +246,23 @@ public class Client {
     }
 
 
-    public static String encriptarMensaje(String textoPlano){
+    public static void generarAES(){
         try {
-            byte[] textoPlanoBytes = textoPlano.getBytes("UTF8"); //Convertimos el mensaje en bytes
-
             //Establecemos las características de la clave (AES 128)
             KeyGenerator generadorClave = KeyGenerator.getInstance("AES"); //Tipo de algoritmo
             generadorClave.init(128); //Tamaño de la clave
 
-            SecretKey claveAES = generadorClave.generateKey(); //Genera la clave AES
+            claveAES = generadorClave.generateKey(); //Genera la clave AES
+        }
+        catch(Exception ex){
+            System.out.println(ex);
+        }
+    }
+
+
+    public static String encriptarMensaje(String textoPlano){
+        try {
+            byte[] textoPlanoBytes = textoPlano.getBytes("UTF8"); //Convertimos el mensaje en bytes
 
             //Ahora que tenemos la clave, pasamos a cifrar el mensaje
             Cipher cifrado = Cipher.getInstance("AES");
