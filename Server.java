@@ -61,6 +61,9 @@ public class Server {
 					break;
 				ClientThread t = new ClientThread(socket);  // make a thread of it
 				al.add(t);									// save it in the ArrayList
+				if(al.size()==1){
+					broadcast("Eres el primero que chupi");
+				}
 				t.start();
 			}
 			// I was asked to stop
@@ -296,7 +299,7 @@ public class Server {
 			}
 			// write the message to the stream
 			try {
-				sOutput.writeObject(msg+"jejeje");
+				sOutput.writeObject(msg);
 			}
 			// if an error occurs, do not abort just inform the user
 			catch(IOException e) {
