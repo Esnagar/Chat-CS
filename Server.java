@@ -53,33 +53,38 @@ public class Server {
                 // format message saying we are waiting
                 display("Server waiting for Clients on port " + port + ".");
 
-                Socket socket = serverSocket.accept();    // accept connection
-                // if I was asked to stop
-                if (!keepGoing)
-                    break;
-                ClientThread t = new ClientThread(socket);  // make a thread of it
-                al.add(t);                                    // save it in the ArrayList
-                t.start();
-            }
-            // I was asked to stop
-            try {
-                serverSocket.close();
-                for (int i = 0; i < al.size(); ++i) {
-                    ClientThread tc = al.get(i);
-                    try {
-                        tc.sInput.close();
-                        tc.sOutput.close();
-                        tc.socket.close();
-                    } catch (IOException ioE) {
-                        // not much I can do
-                    }
-                }
-            } catch (Exception e) {
-                display("Exception closing the server and clients: " + e);
-            }
-        }
-        // something went bad
-        catch (IOException e) {
+				Socket socket = serverSocket.accept();  	// accept connection
+				// if I was asked to stop
+				if(!keepGoing)
+					break;
+				ClientThread t = new ClientThread(socket);  // make a thread of it
+				al.add(t);									// save it in the ArrayList
+				if(al.size()==1){
+					broadcast("Eres el primero que chupi");
+				}
+				t.start();
+			}
+			// I was asked to stop
+			try {
+				serverSocket.close();
+				for(int i = 0; i < al.size(); ++i) {
+					ClientThread tc = al.get(i);
+					try {
+					tc.sInput.close();
+					tc.sOutput.close();
+					tc.socket.close();
+					}
+					catch(IOException ioE) {
+						// not much I can do
+					}
+				}
+			}
+			catch(Exception e) {
+				display("Exception closing the server and clients: " + e);
+			}
+		}
+		// something went bad
+		catch (IOException e) {
             String msg = sdf.format(new Date()) + " Exception on new ServerSocket: " + e + "\n";
             display(msg);
         }
@@ -281,25 +286,25 @@ public class Server {
             }
         }
 
-        /*
-         * Write a String to the Client output stream
-         */
-        private boolean writeMsg(String msg) {
-            // if Client is still connected send the message to it
-            if (!socket.isConnected()) {
-                close();
-                return false;
-            }
-            // write the message to the stream
-            try {
-                sOutput.writeObject(msg + "jejeje");
-            }
-            // if an error occurs, do not abort just inform the user
-            catch (IOException e) {
-                display("Error sending message to " + username);
-                display(e.toString());
-            }
-            return true;
-        }
-    }
+		/*
+		 * Write a String to the Client output stream
+		 */
+		private boolean writeMsg(String msg) {
+			// if Client is still connected send the message to it
+			if(!socket.isConnected()) {
+				close();
+				return false;
+			}
+			// write the message to the stream
+			try {
+				sOutput.writeObject(msg);
+			}
+			// if an error occurs, do not abort just inform the user
+			catch(IOException e) {
+				display("Error sending message to " + username);
+				display(e.toString());
+			}
+			return true;
+		}
+	}
 }
