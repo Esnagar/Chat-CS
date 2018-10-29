@@ -226,6 +226,7 @@ public class Client {
                     String msg = (String) sInput.readObject();
                     // if console mode print the message and add back the prompt
                     if (cg == null) {
+                        generarRSA();
                         System.out.println(msg);
                         msg = msg.substring(9, msg.length() - 1);
                         if (msg.equalsIgnoreCase("Eres el primero que chupi")) {
@@ -265,7 +266,6 @@ public class Client {
     }
 
 
-
     public static void generarAES() {
         try {
             //Establecemos las características de la clave (AES 128)
@@ -276,6 +276,31 @@ public class Client {
         } catch (Exception ex) {
             System.out.println(ex);
         }
+    }
+
+
+    public static String encriptarAES(SecretKey aes) {
+        try {
+            byte[] aesBytes = aes.getEncoded(); //La clave en bytes
+
+            //Pasamos a cifrar la clave generada con AES
+            Cipher cifrado = Cipher.getInstance("RSA");
+            cifrado.init(Cipher.PUBLIC_KEY, clavePublica); //Le decimos explícitamente que queremos encriptar
+
+            byte[] aesCifrado = cifrado.doFinal(aesBytes); //Convertimos el mensaje en bytes
+
+            //Mostramos por pantalla los resultados
+            System.out.println("Clave original: " + aes);
+            System.out.println("Clave en bytes: " + aesBytes);
+            System.out.println("Clave encriptada: ");
+            for (int i = 0; i < aesCifrado.length; i++) {
+                System.out.print(aesCifrado[i] + " ");
+            }
+        } catch (Exception ex) {
+            System.out.println(ex);
+        }
+
+        return "ole";
     }
 
 
