@@ -1,16 +1,20 @@
 import java.net.*;
 import java.io.*;
 import java.util.*;
+import javax.crypto.KeyGenerator;
+import javax.crypto.Cipher;
+import javax.crypto.*;
 
-/*
-* The Client that can be run both as a console or a GUI
-*/
+
+/* The Client that can be run both as a console or a GUI */
 public class Client  {
 
 	// for I/O
 	private ObjectInputStream sInput;		// to read from the socket
 	private ObjectOutputStream sOutput;		// to write on the socket
 	private Socket socket;
+  private static SecretKey claveAES; //Clave para encriptar los mensajes
+
 
 	// if I use a GUI or not
 	private ClientGUI cg;
@@ -194,7 +198,6 @@ public class Client  {
 		Scanner scan = new Scanner(System.in);
 		// loop forever for message from the user
 		while(true) {
-
 			// read message from user
 			String msg = scan.nextLine();
 			// logout if message is LOGOUT
@@ -231,7 +234,7 @@ public class Client  {
 						msg=msg.substring(9,msg.length()-1);
 						if(msg.equalsIgnoreCase("Eres el primero que chupi")){
 							System.out.println("Soy el primero viva");
-							//invoco metodo de AES y RSA
+							generarAES();
 						}
 						System.out.print("> ");
 					}
@@ -251,4 +254,45 @@ public class Client  {
 			}
 		}
 	}
+  
+  
+  public static void generarAES(){
+        try {
+            //Establecemos las características de la clave (AES 128)
+            KeyGenerator generadorClave = KeyGenerator.getInstance("AES"); //Tipo de algoritmo
+            generadorClave.init(128); //Tamaño de la clave
+
+            claveAES = generadorClave.generateKey(); //Genera la clave AES
+        }
+        catch(Exception ex){
+            System.out.println(ex);
+        }
+    }
+
+
+    public static String encriptarMensaje(String textoPlano){
+        try {
+            byte[] textoPlanoBytes = textoPlano.getBytes("UTF8"); //Convertimos el mensaje en bytes
+
+            //Ahora que tenemos la clave, pasamos a cifrar el mensaje
+            Cipher cifrado = Cipher.getInstance("AES");
+            cifrado.init(Cipher.ENCRYPT_MODE, claveAES); //Le decimos explícitamente que queremos encriptar
+
+            byte[] textoCifrado = cifrado.doFinal(textoPlanoBytes); //Convertimos el mensaje en bytes
+
+            //Mostramos por pantalla los resultados
+            System.out.println("Mensaje original: " + textoPlano);
+            System.out.println("Mensaje en bytes: " + textoPlanoBytes);
+            System.out.println("Mensaje encriptado: ");
+            for (int i = 0; i < textoCifrado.length; i++) {
+                System.out.print(textoCifrado[i] + " ");
+            }
+        }
+
+        catch(Exception ex){
+            System.out.println(ex);
+        }
+
+        return textoPlano;
+    }
 }
