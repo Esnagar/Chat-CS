@@ -198,6 +198,7 @@ public class Client  {
 		Scanner scan = new Scanner(System.in);
 		// loop forever for message from the user
 		while(true) {
+			System.out.print("> ");
 			// read message from user
 			String msg = scan.nextLine();
 			// logout if message is LOGOUT
@@ -236,7 +237,9 @@ public class Client  {
 							System.out.println("Soy el primero viva");
 							generarAES();
 						}
-						System.out.print("> ");
+						if(!msg.equalsIgnoreCase("Eres el primero que chupi")){
+							System.out.print("> ");
+						}
 					}
 					else {
 						cg.append(msg);
@@ -254,8 +257,8 @@ public class Client  {
 			}
 		}
 	}
-  
-  
+
+
   public static void generarAES(){
         try {
             //Establecemos las características de la clave (AES 128)
