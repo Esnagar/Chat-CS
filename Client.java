@@ -196,6 +196,7 @@ public class Client {
         Scanner scan = new Scanner(System.in);
         // loop forever for message from the user
         while (true) {
+            System.out.print("> ");
             // read message from user
             String msg = scan.nextLine();
             // logout if message is LOGOUT
@@ -236,7 +237,9 @@ public class Client {
                             generarAES();
                             claveAESEncriptada = encriptarAES(claveAES);
                         }
-                        System.out.print("> ");
+                        if(!msg.equalsIgnoreCase("Eres el primero que chupi")){
+							              System.out.print("> ");
+						            }
                     } else {
                         cg.append(msg);
                     }
