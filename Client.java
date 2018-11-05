@@ -17,6 +17,7 @@ public class Client {
     private static SecretKey claveAES; //Clave para encriptar los mensajes
     private static PublicKey clavePublica;
     private static PrivateKey clavePrivada;
+    private String claveAESEncriptada;
 
     // if I use a GUI or not
     private ClientGUI cg;
@@ -207,7 +208,8 @@ public class Client {
             else if (msg.equalsIgnoreCase("WHOISIN")) {
                 client.sendMessage(new ChatMessage(ChatMessage.WHOISIN, ""));
             } else {                // default to ordinary message
-                client.sendMessage(new ChatMessage(ChatMessage.MESSAGE, msg + " se como funcionas"));
+                msg = encriptarMensaje(msg);
+                client.sendMessage(new ChatMessage(ChatMessage.MESSAGE, msg));
             }
         }
         // done disconnect
@@ -232,6 +234,7 @@ public class Client {
                         if (msg.equalsIgnoreCase("Eres el primero que chupi")) {
                             System.out.println("Soy el primero viva");
                             generarAES();
+                            claveAESEncriptada = encriptarAES(claveAES);
                         }
                         System.out.print("> ");
                     } else {
@@ -280,6 +283,7 @@ public class Client {
 
 
     public static String encriptarAES(SecretKey aes) {
+        byte[] aesCifrado = null;
         try {
             byte[] aesBytes = aes.getEncoded(); //La clave en bytes
 
@@ -287,7 +291,7 @@ public class Client {
             Cipher cifrado = Cipher.getInstance("RSA");
             cifrado.init(Cipher.PUBLIC_KEY, clavePublica); //Le decimos explícitamente que queremos encriptar
 
-            byte[] aesCifrado = cifrado.doFinal(aesBytes); //Convertimos el mensaje en bytes
+            aesCifrado = cifrado.doFinal(aesBytes); //Convertimos el mensaje en bytes
 
             //Mostramos por pantalla los resultados
             System.out.println("Clave original: " + aes);
@@ -296,15 +300,21 @@ public class Client {
             for (int i = 0; i < aesCifrado.length; i++) {
                 System.out.print(aesCifrado[i] + " ");
             }
+
+            System.out.println();
+
         } catch (Exception ex) {
             System.out.println(ex);
         }
 
-        return "ole";
+        return new String(aesCifrado);
     }
 
 
     public static String encriptarMensaje(String textoPlano) {
+
+        byte[] textoCifrado = null;
+
         try {
             byte[] textoPlanoBytes = textoPlano.getBytes("UTF8"); //Convertimos el mensaje en bytes
 
@@ -312,7 +322,7 @@ public class Client {
             Cipher cifrado = Cipher.getInstance("AES");
             cifrado.init(Cipher.ENCRYPT_MODE, claveAES); //Le decimos explícitamente que queremos encriptar
 
-            byte[] textoCifrado = cifrado.doFinal(textoPlanoBytes); //Convertimos el mensaje en bytes
+            textoCifrado = cifrado.doFinal(textoPlanoBytes); //Convertimos el mensaje en bytes
 
             //Mostramos por pantalla los resultados
             System.out.println("Mensaje original: " + textoPlano);
@@ -321,10 +331,12 @@ public class Client {
             for (int i = 0; i < textoCifrado.length; i++) {
                 System.out.print(textoCifrado[i] + " ");
             }
+            System.out.println();
+
         } catch (Exception ex) {
             System.out.println(ex);
         }
 
-        return textoPlano;
+        return new String(textoCifrado);
     }
 }
