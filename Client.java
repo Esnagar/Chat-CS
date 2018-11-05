@@ -209,7 +209,7 @@ public class Client {
             else if (msg.equalsIgnoreCase("WHOISIN")) {
                 client.sendMessage(new ChatMessage(ChatMessage.WHOISIN, ""));
             } else {                // default to ordinary message
-                msg = encriptarMensaje(msg);
+                //msg = encriptarMensaje(msg);
                 client.sendMessage(new ChatMessage(ChatMessage.MESSAGE, msg));
             }
         }
@@ -235,9 +235,9 @@ public class Client {
                         if (msg.equalsIgnoreCase("Eres el primero que chupi")) {
                             System.out.println("Soy el primero viva");
                             generarAES();
-                            claveAESEncriptada = encriptarAES(claveAES);
                         }
                         if(!msg.equalsIgnoreCase("Eres el primero que chupi")){
+													  sOutput.writeObject(new ChatMessage(ChatMessage.MESSAGE,  "~0~Soy la clave publica"));
 							              System.out.print("> ");
 						            }
                     } else {
@@ -297,14 +297,14 @@ public class Client {
             aesCifrado = cifrado.doFinal(aesBytes); //Convertimos el mensaje en bytes
 
             //Mostramos por pantalla los resultados
-            System.out.println("Clave original: " + aes);
+            /*System.out.println("Clave original: " + aes);
             System.out.println("Clave en bytes: " + aesBytes);
             System.out.println("Clave encriptada: ");
             for (int i = 0; i < aesCifrado.length; i++) {
                 System.out.print(aesCifrado[i] + " ");
             }
 
-            System.out.println();
+            System.out.println();*/
 
         } catch (Exception ex) {
             System.out.println(ex);
@@ -328,13 +328,13 @@ public class Client {
             textoCifrado = cifrado.doFinal(textoPlanoBytes); //Convertimos el mensaje en bytes
 
             //Mostramos por pantalla los resultados
-            System.out.println("Mensaje original: " + textoPlano);
+            /*System.out.println("Mensaje original: " + textoPlano);
             System.out.println("Mensaje en bytes: " + textoPlanoBytes);
             System.out.println("Mensaje encriptado: ");
             for (int i = 0; i < textoCifrado.length; i++) {
                 System.out.print(textoCifrado[i] + " ");
             }
-            System.out.println();
+            System.out.println();*/
 
         } catch (Exception ex) {
             System.out.println(ex);

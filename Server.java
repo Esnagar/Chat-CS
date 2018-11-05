@@ -246,7 +246,15 @@ public class Server {
                 switch (cm.getType()) {
 
                     case ChatMessage.MESSAGE:
-                        broadcast(username + ": " + message); //aqui hace broadcast a todos los usuarios si es tipo mensaje
+                      //vamos a hacer que pueda enviar a usuarios especificos
+                      //ClientThread clienteesp = al.get(0);
+                      //clienteesp.writeMsg("Mensaje a persona especifica");
+                      if(message.substring(0,3).equalsIgnoreCase("~0~")){
+                        ClientThread clienteesp = al.get(0);
+                        clienteesp.writeMsg("Estoy recibiendo la clave publica de alguien");
+                      }
+                        else{
+                        broadcast(username + ": " + message);}
                         break;
                     case ChatMessage.LOGOUT:
                         display(username + " disconnected with a LOGOUT message.");
