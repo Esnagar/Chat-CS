@@ -1,11 +1,9 @@
 import java.net.*;
 import java.io.*;
 import java.util.*;
-import javax.crypto.KeyGenerator;
-import javax.crypto.Cipher;
 import javax.crypto.*;
 import java.security.*;
-
+import org.apache.commons.codec.binary.Base64;
 
 /* The Client that can be run both as a console or a GUI */
 public class Client {
@@ -210,6 +208,7 @@ public class Client {
                 client.sendMessage(new ChatMessage(ChatMessage.WHOISIN, ""));
             } else {                // default to ordinary message
                 msg = encriptarMensaje(msg);
+                desencriptarMensaje(msg);
                 client.sendMessage(new ChatMessage(ChatMessage.MESSAGE, msg));
             }
         }
@@ -311,6 +310,32 @@ public class Client {
         }
 
         return new String(aesCifrado);
+    }
+
+
+    public static void desencriptarMensaje(String textoCifrado) {
+        String textoPlano = null;
+
+        try {
+            //Ahora que tenemos la clave, pasamos a cifrar el mensaje
+            Cipher cifrado = Cipher.getInstance("AES");
+            cifrado.init(Cipher.DECRYPT_MODE, claveAES); //Le decimos explícitamente que queremos desencriptar
+
+            textoPlano = new String(cipher.doFinal(Base64.decodeBase64(textoCifrado)));
+
+            //Mostramos por pantalla los resultados
+            System.out.println("Mensaje cifrado: " + textoCifrado);
+            System.out.println("Mensaje en claro: ");
+            for (int i = 0; i < textoPlano.length; i++) {
+                System.out.print(textoPlano[i] + " ");
+            }
+            System.out.println();
+
+        } catch (Exception ex) {
+            System.out.println(ex);
+        }
+
+        return textoPlano;
     }
 
 
