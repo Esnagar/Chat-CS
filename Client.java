@@ -3,7 +3,6 @@ import java.io.*;
 import java.util.*;
 import javax.crypto.*;
 import java.security.*;
-import org.apache.commons.codec.binary.Base64;
 
 /* The Client that can be run both as a console or a GUI */
 public class Client {
@@ -313,52 +312,23 @@ public class Client {
     }
 
 
-    public static void desencriptarMensaje(String textoCifrado) {
-        String textoPlano = null;
-
-        try {
-            //Ahora que tenemos la clave, pasamos a cifrar el mensaje
-            Cipher cifrado = Cipher.getInstance("AES");
-            cifrado.init(Cipher.DECRYPT_MODE, claveAES); //Le decimos explícitamente que queremos desencriptar
-
-            textoPlano = new String(cipher.doFinal(Base64.decodeBase64(textoCifrado)));
-
-            //Mostramos por pantalla los resultados
-            System.out.println("Mensaje cifrado: " + textoCifrado);
-            System.out.println("Mensaje en claro: ");
-            for (int i = 0; i < textoPlano.length; i++) {
-                System.out.print(textoPlano[i] + " ");
-            }
-            System.out.println();
-
-        } catch (Exception ex) {
-            System.out.println(ex);
-        }
-
-        return textoPlano;
-    }
-
-
     public static String encriptarMensaje(String textoPlano) {
 
-        byte[] textoCifrado = null;
+        String textoCifrado = null;
 
         try {
-            byte[] textoPlanoBytes = textoPlano.getBytes("UTF8"); //Convertimos el mensaje en bytes
-
             //Ahora que tenemos la clave, pasamos a cifrar el mensaje
             Cipher cifrado = Cipher.getInstance("AES");
             cifrado.init(Cipher.ENCRYPT_MODE, claveAES); //Le decimos explícitamente que queremos encriptar
 
-            textoCifrado = cifrado.doFinal(textoPlanoBytes); //Convertimos el mensaje en bytes
+            textoCifrado = Base64.getEncoder().encodeToString(cifrado.doFinal(textoPlano.getBytes("UTF-8")));
 
             //Mostramos por pantalla los resultados
             System.out.println("Mensaje original: " + textoPlano);
-            System.out.println("Mensaje en bytes: " + textoPlanoBytes);
-            System.out.println("Mensaje encriptado: ");
-            for (int i = 0; i < textoCifrado.length; i++) {
+            System.out.println("Mensaje encriptado: " + textoCifrado);
+            /*for (int i = 0; i < textoCifrado.length; i++) {
                 System.out.print(textoCifrado[i] + " ");
-            }
+            }*/
             System.out.println();
 
         } catch (Exception ex) {
@@ -366,5 +336,32 @@ public class Client {
         }
 
         return new String(textoCifrado);
+    }
+
+
+    public static String desencriptarMensaje(String textoCifrado) {
+        String textoPlano = null;
+
+        try {
+            //Ahora que tenemos la clave, pasamos a descifrar el mensaje
+            Cipher cifrado = Cipher.getInstance("AES");
+            cifrado.init(Cipher.DECRYPT_MODE, claveAES); //Le decimos explícitamente que queremos desencriptar
+
+            byte[] base64desencriptar = Base64.getDecoder().decode(textoCifrado);
+            textoPlano = new String(cifrado.doFinal(base64desencriptar));
+
+            //Mostramos por pantalla los resultados
+            System.out.println("Mensaje cifrado: " + textoCifrado);
+            System.out.println("Mensaje en claro: " + textoPlano);
+            /*for (int i = 0; i < textoPlano.length; i++) {
+                System.out.print(textoPlano[i] + " ");
+            }*/
+            System.out.println();
+
+        } catch (Exception ex) {
+            System.out.println(ex);
+        }
+
+        return textoPlano;
     }
 }
