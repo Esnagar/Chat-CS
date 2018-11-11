@@ -4,8 +4,8 @@ import java.util.*;
 import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.*;
-import java.security.SecureRandom;
-import java.security.Security;
+import java.nio.file.*;
+
 
 /* The Client that can be run both as a console or a GUI */
 public class Client {
@@ -208,9 +208,12 @@ public class Client {
             // message WhoIsIn
             else if (msg.equalsIgnoreCase("WHOISIN")) {
                 client.sendMessage(new ChatMessage(ChatMessage.WHOISIN, ""));
-            } else {                // default to ordinary message
-                msg = encriptarMensaje(msg);
-                desencriptarMensaje(msg);
+            }
+            else if (msg.contains("FILE")) {
+                client.sendMessage(new ChatMessage(ChatMessage.FILE, msg));
+            } 
+            else {                // default to ordinary message
+                //msg = encriptarMensaje(msg);
                 client.sendMessage(new ChatMessage(ChatMessage.MESSAGE, msg));
             }
         }
@@ -225,26 +228,54 @@ public class Client {
     class ListenFromServer extends Thread {
 
         public void run() {
+          generarRSA();
+          System.out.println("Como nuevo usuario he generado mis claves RSA");
             while (true) {
                 try {
-                    String msg = (String) sInput.readObject();
+
+                    ChatMessage aux = (ChatMessage) sInput.readObject();
+                    if(aux.getType()==1){
+                      String msg=aux.getMessage();
                     // if console mode print the message and add back the prompt
                     if (cg == null) {
-                        generarRSA();
+                      if(!msg.contains("~0~") && !msg.contains("~1~")){
                         System.out.println(msg);
+                      }
                         msg = msg.substring(9, msg.length() - 1);
                         if (msg.equalsIgnoreCase("Eres el primero que chupi")) {
                             System.out.println("Soy el primero viva");
                             generarAES();
-                            claveAESEncriptada = encriptarK(claveAES);
-                            desencriptarK(claveAESEncriptada);
+
                         }
-                        if (!msg.equalsIgnoreCase("Eres el primero que chupi")) {
-                            System.out.print("> ");
-                        }
+                          if (msg.equalsIgnoreCase("Vas a mandarme tu clave publica")){
+                              sOutput.writeObject(new ChatMessage(ChatMessage.MESSAGE,  "~0~Soy la clave publica"));
+                          }
+                          if (msg.contains("~0~")){
+                               System.out.println("Tengo la clave publica de otro usuario");
+                               System.out.println("Encripto la clave AES con ella y la mando");
+                               sOutput.writeObject(new ChatMessage(ChatMessage.MESSAGE,  "~1~Soy la clave AES encriptada"));
+                          }
+                          if (msg.contains("~1~")){
+                               System.out.println("Tengo la clave AES encriptada");
+                               System.out.println("La desencripto con mi clave privada");
+                               System.out.println("Ya tengo la clave AES");
+                          }
+                        if(!msg.equalsIgnoreCase("Eres el primero que chupi")){
+
+							              System.out.print("> ");
+						            }
                     } else {
                         cg.append(msg);
                     }
+                  }
+                  if(aux.getType()==3){
+
+                    byte[] otro = aux.getContenido();
+                    System.out.println("Tengo el archivo");
+                    File f = new File("C:\\Users\\Pc\\Downloads\\LorikeetFiles"+aux.getMessage());
+                    Files.write(f.toPath(), otro);
+
+                  }
                 } catch (IOException e) {
                     display("Server has close the connection: " + e);
                     if (cg != null)
@@ -271,7 +302,6 @@ public class Client {
         } catch (Exception ex) {
             System.out.println(ex);
         }
-
     }
 
 
@@ -300,7 +330,6 @@ public class Client {
             System.out.println("Clave original: " + aes);
             System.out.println("Clave encriptada: " + aesCifrado);
             System.out.println();
-
         } catch (Exception ex) {
             System.out.println(ex);
         }
@@ -344,7 +373,7 @@ public class Client {
             System.out.println("Mensaje original: " + textoPlano);
             System.out.println("Mensaje encriptado: " + textoCifrado);
             System.out.println();
-
+          
         } catch (Exception ex) {
             System.out.println(ex);
         }

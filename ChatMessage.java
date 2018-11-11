@@ -1,4 +1,5 @@
 import java.io.*;
+import java.nio.file.*;
 /*
  * This class defines the different type of messages that will be exchanged between the
  * Clients and the Server.
@@ -13,14 +14,33 @@ public class ChatMessage implements Serializable {
 	// WHOISIN to receive the list of the users connected
 	// MESSAGE an ordinary message
 	// LOGOUT to disconnect from the Server
-	static final int WHOISIN = 0, MESSAGE = 1, LOGOUT = 2;
+	//FILE contains a FILE
+	static final int WHOISIN = 0, MESSAGE = 1, LOGOUT = 2, FILE = 3;
 	private int type;
 	private String message;
+	private byte[] contenido;
 
 	// constructor
 	ChatMessage(int type, String message) {
+		if(type==3){//FILE: KSDLAKMDLAMDAML
+			String archivo=message.substring(6,message.length());
+			this.message=archivo.substring(archivo.lastIndexOf("\\"));
+			System.out.println(archivo);
+			File f = new File(archivo);
+			byte[] content=null;
+			try{
+			content = Files.readAllBytes(f.toPath());
+		}
+		catch (IOException ex) {
+            System.out.println("Problema con el archivo");
+        }
+			this.contenido=content;
+			this.type = type;
+		}
+		else{
 		this.type = type;
 		this.message = message;
+	}
 	}
 
 	// getters
@@ -29,5 +49,8 @@ public class ChatMessage implements Serializable {
 	}
 	String getMessage() {
 		return message;
+	}
+	byte[] getContenido(){
+		return contenido;
 	}
 }
