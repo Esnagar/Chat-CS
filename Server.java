@@ -2,6 +2,7 @@ import java.io.*;
 import java.net.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.nio.file.*;
 
 /*
  * The server that can be run both as a console application or a GUI
@@ -62,21 +63,21 @@ public class Server {
 				ClientThread t = new ClientThread(socket);  // make a thread of it
 				al.add(t);									// save it in the ArrayList
 				if(al.size()==1){
-					broadcast("Eres el primero que chupi");
+					broadcast(new ChatMessage(ChatMessage.MESSAGE,"Eres el primero que chupi"));
 				}
       	if(al.size()>1){
           String time = sdf.format(new Date());
           String messageLf = time + " " + "No eres el primero que chupi" + "\n";
-            t.writeMsg(messageLf);
+            t.writeObject(new ChatMessage(ChatMessage.MESSAGE,messageLf));
             //metodo sincronizador, tiene que esperar a las cosas
             messageLf = time + " " + "Vas a mandarme tu clave publica" + "\n";
-              t.writeMsg(messageLf);
+              t.writeObject(new ChatMessage(ChatMessage.MESSAGE,messageLf));
               t.runkey();
               messageLf = time + " " + recibiendo + "\n";
-              al.get(0).writeMsg(messageLf);
+              al.get(0).writeObject(new ChatMessage(ChatMessage.MESSAGE,messageLf));
               try {Thread.sleep(5000);} catch (InterruptedException e)  {}
               messageLf = time + " " + recibiendo + "\n";
-              t.writeMsg(messageLf);
+              t.writeObject(new ChatMessage(ChatMessage.MESSAGE,messageLf));
 				}
 				t.start();
 			}
@@ -154,6 +155,28 @@ public class Server {
                 display("Disconnected Client " + ct.username + " removed from list.");
             }
         }
+    }
+
+    private synchronized void broadcast(ChatMessage objeto) {   // este metodo manda todo a todos los usuarios
+        // add HH:mm:ss and \n to the message
+        if(objeto.getType()==1){
+          String time = sdf.format(new Date());
+          String messageLf = time + " " + objeto.getMessage() + "\n";
+          objeto=new ChatMessage(ChatMessage.MESSAGE,messageLf);
+          if (sg == null)
+              System.out.print(messageLf); //lo imprime en consola
+          else
+              sg.appendRoom(messageLf);     // append in the room window
+            }
+          for (int i = al.size(); --i >= 0; ) {
+              ClientThread ct = al.get(i);
+              if (!ct.writeObject(objeto)) {
+                  al.remove(i);
+                  display("Disconnected Client " + ct.username + " removed from list.");
+              }
+          }
+
+
     }
 
     // for a client who logoff using the LOGOUT message
@@ -280,7 +303,7 @@ public class Server {
                 }
                 // the messaage part of the ChatMessage
                 String message = cm.getMessage();
-
+                byte[] archivo = cm.getContenido();
                 // Switch on the type of message receive
                 switch (cm.getType()) {
 
@@ -289,10 +312,11 @@ public class Server {
 
                           recibiendo=message;
                     System.out.println("Tengo una clave AES encriptada y se la doy a otro usuario");
-                     
+
                     }
                   else{
-                        broadcast(username + ": " + message);}
+                        broadcast(new ChatMessage(ChatMessage.MESSAGE,username + ": " + message));
+                      }
                         break;
                     case ChatMessage.LOGOUT:
                         display(username + " disconnected with a LOGOUT message.");
@@ -306,6 +330,10 @@ public class Server {
                             writeMsg((i + 1) + ") " + ct.username + " since " + ct.date);
                         }
                         break;
+                    case ChatMessage.FILE:
+                    System.out.println("Transfiriendo un archivo");
+                    broadcast(cm);
+                    break;
                 }
             }
             // remove myself from the arrayList containing the list of the
@@ -352,5 +380,45 @@ public class Server {
 			}
 			return true;
 		}
+    /*
+     * Write a File to the Client output stream
+     */
+    private boolean writeFile(byte[] msg) {
+			// if Client is still connected send the message to it
+			if(!socket.isConnected()) {
+				close();
+				return false;
+			}
+			// write the message to the stream
+			try {
+				sOutput.writeObject(msg);
+			}
+			// if an error occurs, do not abort just inform the user
+			catch(IOException e) {
+				display("Error sending file to " + username);
+				display(e.toString());
+			}
+			return true;
+		}
+    /*
+     * Write a Object to the Client output stream
+     */
+    private boolean writeObject(ChatMessage cm) {
+      // if Client is still connected send the message to it
+      if(!socket.isConnected()) {
+        close();
+        return false;
+      }
+      // write the message to the stream
+      try {
+        sOutput.writeObject(cm);
+      }
+      // if an error occurs, do not abort just inform the user
+      catch(IOException e) {
+        display("Error sending file to " + username);
+        display(e.toString());
+      }
+      return true;
+    }
 	}
 }
