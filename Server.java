@@ -20,6 +20,8 @@ public class Server {
     // the boolean that will be turned of to stop the server
     private boolean keepGoing;
 
+    private String recibiendo;
+
 
     /*
      *  server constructor that receive the port to listen to for connection as parameter
@@ -61,6 +63,20 @@ public class Server {
 				al.add(t);									// save it in the ArrayList
 				if(al.size()==1){
 					broadcast("Eres el primero que chupi");
+				}
+      	if(al.size()>1){
+          String time = sdf.format(new Date());
+          String messageLf = time + " " + "No eres el primero que chupi" + "\n";
+            t.writeMsg(messageLf);
+            //metodo sincronizador, tiene que esperar a las cosas
+            messageLf = time + " " + "Vas a mandarme tu clave publica" + "\n";
+              t.writeMsg(messageLf);
+              t.runkey();
+              messageLf = time + " " + recibiendo + "\n";
+              al.get(0).writeMsg(messageLf);
+              try {Thread.sleep(5000);} catch (InterruptedException e)  {}
+              messageLf = time + " " + recibiendo + "\n";
+              t.writeMsg(messageLf);
 				}
 				t.start();
 			}
@@ -200,6 +216,8 @@ public class Server {
         // the date I connect
         String date;
 
+        boolean keyflag=false;
+
         // Constructore
         ClientThread(Socket socket) {
             // a unique id
@@ -224,7 +242,28 @@ public class Server {
             }
             date = new Date().toString() + "\n";
         }
+        //hará una sola lectura del cliente para nosotros
+        private void runkey(){
 
+          try {
+            cm = (ChatMessage) sInput.readObject();
+          } catch (IOException e) {
+              display(username + " Exception reading Streams: " + e);
+          } catch (ClassNotFoundException e2) {
+          }
+          // the messaage part of the ChatMessage
+          String message = cm.getMessage();
+          if(message.length()>3){
+          if(message.substring(0,3).equalsIgnoreCase("~0~")){
+                recibiendo=message;
+          System.out.println("Tengo una clave publica de algun usuario y se la doy al primer usuario");
+          }
+          if(message.substring(0,3).equalsIgnoreCase("~1~")){
+                recibiendo=message;
+          System.out.println("Tengo una clave AES encriptada y se la doy a otro usuario");
+          }
+        }
+        }
         // what will run forever
         public void run() {
             // to loop until LOGOUT
@@ -246,14 +285,13 @@ public class Server {
                 switch (cm.getType()) {
 
                     case ChatMessage.MESSAGE:
-                      //vamos a hacer que pueda enviar a usuarios especificos
-                      //ClientThread clienteesp = al.get(0);
-                      //clienteesp.writeMsg("Mensaje a persona especifica");
-                      if(message.substring(0,3).equalsIgnoreCase("~0~")){
-                        ClientThread clienteesp = al.get(0);
-                        clienteesp.writeMsg("Estoy recibiendo la clave publica de alguien");
-                      }
-                        else{
+                    if(message.contains("~1~")){
+
+                          recibiendo=message;
+                    System.out.println("Tengo una clave AES encriptada y se la doy a otro usuario");
+                     
+                    }
+                  else{
                         broadcast(username + ": " + message);}
                         break;
                     case ChatMessage.LOGOUT:

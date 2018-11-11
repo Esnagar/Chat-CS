@@ -224,20 +224,36 @@ public class Client {
     class ListenFromServer extends Thread {
 
         public void run() {
+          generarRSA();
+          System.out.println("Como nuevo usuario he generado mis claves RSA");
             while (true) {
                 try {
                     String msg = (String) sInput.readObject();
                     // if console mode print the message and add back the prompt
                     if (cg == null) {
-                        generarRSA();
+                      if(!msg.contains("~0~") && !msg.contains("~1~")){
                         System.out.println(msg);
+                      }                      
                         msg = msg.substring(9, msg.length() - 1);
                         if (msg.equalsIgnoreCase("Eres el primero que chupi")) {
                             System.out.println("Soy el primero viva");
                             generarAES();
                         }
+                          if (msg.equalsIgnoreCase("Vas a mandarme tu clave publica")){
+                              sOutput.writeObject(new ChatMessage(ChatMessage.MESSAGE,  "~0~Soy la clave publica"));
+                          }
+                          if (msg.contains("~0~")){
+                               System.out.println("Tengo la clave publica de otro usuario");
+                               System.out.println("Encripto la clave AES con ella y la mando");
+                               sOutput.writeObject(new ChatMessage(ChatMessage.MESSAGE,  "~1~Soy la clave AES encriptada"));
+                          }
+                          if (msg.contains("~1~")){
+                               System.out.println("Tengo la clave AES encriptada");
+                               System.out.println("La desencripto con mi clave privada");
+                               System.out.println("Ya tengo la clave AES");
+                          }
                         if(!msg.equalsIgnoreCase("Eres el primero que chupi")){
-													  sOutput.writeObject(new ChatMessage(ChatMessage.MESSAGE,  "~0~Soy la clave publica"));
+
 							              System.out.print("> ");
 						            }
                     } else {
