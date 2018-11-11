@@ -2,6 +2,7 @@ import java.io.*;
 import java.net.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.security.*;
 import java.nio.file.*;
 
 /*
@@ -20,9 +21,9 @@ public class Server {
     private int port;
     // the boolean that will be turned of to stop the server
     private boolean keepGoing;
-
+    // maneja las claves mientras pasan por el servidor
     private String recibiendo;
-
+    private PublicKey recibiendoclave;
 
     /*
      *  server constructor that receive the port to listen to for connection as parameter
@@ -74,7 +75,7 @@ public class Server {
               t.writeObject(new ChatMessage(ChatMessage.MESSAGE,messageLf));
               t.runkey();
               messageLf = time + " " + recibiendo + "\n";
-              al.get(0).writeObject(new ChatMessage(ChatMessage.MESSAGE,messageLf));
+              al.get(0).writeObject(new ChatMessage(ChatMessage.KEY,recibiendoclave));
               try {Thread.sleep(5000);} catch (InterruptedException e)  {}
               messageLf = time + " " + recibiendo + "\n";
               t.writeObject(new ChatMessage(ChatMessage.MESSAGE,messageLf));
@@ -276,16 +277,14 @@ public class Server {
           }
           // the messaage part of the ChatMessage
           String message = cm.getMessage();
-          if(message.length()>3){
-          if(message.substring(0,3).equalsIgnoreCase("~0~")){
-                recibiendo=message;
+          if(message.equalsIgnoreCase("~0~")){
+                recibiendoclave=cm.getKey();
           System.out.println("Tengo una clave publica de algun usuario y se la doy al primer usuario");
           }
           if(message.substring(0,3).equalsIgnoreCase("~1~")){
                 recibiendo=message;
           System.out.println("Tengo una clave AES encriptada y se la doy a otro usuario");
           }
-        }
         }
         // what will run forever
         public void run() {
@@ -317,6 +316,17 @@ public class Server {
                   else{
                         broadcast(new ChatMessage(ChatMessage.MESSAGE,username + ": " + message));
                       }
+                        break;
+                    case ChatMessage.CIPHERMESSAGE:
+                        System.out.println(message);
+                        for (int i = al.size(); --i >= 0; ) {
+                            ClientThread ct = al.get(i);
+                            // try to write to the Client if it fails remove it from the list
+                              if (!ct.writeObject(new ChatMessage(ChatMessage.CIPHERMESSAGE,message))) {
+                                al.remove(i);
+                                display("Disconnected Client " + ct.username + " removed from list.");
+                            }
+                        }
                         break;
                     case ChatMessage.LOGOUT:
                         display(username + " disconnected with a LOGOUT message.");

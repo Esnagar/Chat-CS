@@ -1,4 +1,5 @@
 import java.io.*;
+import java.security.*;
 import java.nio.file.*;
 /*
  * This class defines the different type of messages that will be exchanged between the
@@ -15,26 +16,25 @@ public class ChatMessage implements Serializable {
 	// MESSAGE an ordinary message
 	// LOGOUT to disconnect from the Server
 	//FILE contains a FILE
-	static final int WHOISIN = 0, MESSAGE = 1, LOGOUT = 2, FILE = 3;
+	static final int WHOISIN = 0, MESSAGE = 1, LOGOUT = 2, FILE = 3, KEY = 4, CIPHERMESSAGE = 5;
 	private int type;
 	private String message;
 	private byte[] contenido;
+	private PublicKey clave;
 
 	// constructor
+	ChatMessage(int type, PublicKey clave){
+			if(type==4){
+				this.type = type;
+				this.message = "~0~";
+				this.clave=clave;
+			}
+		}
 	ChatMessage(int type, String message) {
-		if(type==3){//FILE: KSDLAKMDLAMDAML
+		if(type==3){ //FILE: KSDLAKMDLAMDAML
 			String archivo=message.substring(6,message.length());
 			this.message=archivo.substring(archivo.lastIndexOf("\\"));
 			System.out.println(archivo);
-			File f = new File(archivo);
-			byte[] content=null;
-			try{
-			content = Files.readAllBytes(f.toPath());
-		}
-		catch (IOException ex) {
-            System.out.println("Problema con el archivo");
-        }
-			this.contenido=content;
 			this.type = type;
 		}
 		else{
@@ -47,10 +47,16 @@ public class ChatMessage implements Serializable {
 	int getType() {
 		return type;
 	}
+	public void setContenido(byte[] setear){
+		this.contenido=setear;
+	}
 	String getMessage() {
 		return message;
 	}
 	byte[] getContenido(){
 		return contenido;
+	}
+	PublicKey getKey(){
+		return clave;
 	}
 }

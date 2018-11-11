@@ -210,11 +210,26 @@ public class Client {
                 client.sendMessage(new ChatMessage(ChatMessage.WHOISIN, ""));
             }
             else if (msg.contains("FILE")) {
-                client.sendMessage(new ChatMessage(ChatMessage.FILE, msg));
-            } 
+              ChatMessage cosa=new ChatMessage(ChatMessage.FILE, msg);
+              String archivo=msg.substring(6,msg.length());
+              File f = new File(archivo);
+              byte[] content=null;
+              try{
+              content = Files.readAllBytes(f.toPath());
+            }
+            catch (IOException ex) {
+                    System.out.println("Problema con el archivo");
+                }
+                  if(claveAES!=null){
+                    content=encriptarMensajeBytes(content);
+                  }
+                cosa.setContenido(content);
+                client.sendMessage(cosa);
+            }
             else {                // default to ordinary message
-                //msg = encriptarMensaje(msg);
-                client.sendMessage(new ChatMessage(ChatMessage.MESSAGE, msg));
+              if(claveAES!=null){
+                msg = encriptarMensaje(userName+": "+msg);}
+                client.sendMessage(new ChatMessage(ChatMessage.CIPHERMESSAGE, msg));
             }
         }
         // done disconnect
@@ -234,30 +249,44 @@ public class Client {
                 try {
 
                     ChatMessage aux = (ChatMessage) sInput.readObject();
-                    if(aux.getType()==1){
+                    if(aux.getType()==5){
+                      if(claveAES!=null){
+                        String msg=aux.getMessage();
+                        msg=desencriptarMensaje(msg);
+                        System.out.println(msg);
+                      }
+                    }
+                    if(aux.getType()==1 || aux.getType()==4){
                       String msg=aux.getMessage();
                     // if console mode print the message and add back the prompt
                     if (cg == null) {
                       if(!msg.contains("~0~") && !msg.contains("~1~")){
                         System.out.println(msg);
                       }
+                      if(aux.getType()!=4){
                         msg = msg.substring(9, msg.length() - 1);
+                      }
                         if (msg.equalsIgnoreCase("Eres el primero que chupi")) {
                             System.out.println("Soy el primero viva");
                             generarAES();
 
                         }
                           if (msg.equalsIgnoreCase("Vas a mandarme tu clave publica")){
-                              sOutput.writeObject(new ChatMessage(ChatMessage.MESSAGE,  "~0~Soy la clave publica"));
+                              sOutput.writeObject(new ChatMessage(ChatMessage.KEY,clavePublica));
                           }
                           if (msg.contains("~0~")){
                                System.out.println("Tengo la clave publica de otro usuario");
                                System.out.println("Encripto la clave AES con ella y la mando");
-                               sOutput.writeObject(new ChatMessage(ChatMessage.MESSAGE,  "~1~Soy la clave AES encriptada"));
+                               //Recibo la clavepublica de B desde el servidor, y con ella encripto mi AES, devolviendo un String
+                               String enviar=encriptarK(aux.getKey());
+                               sOutput.writeObject(new ChatMessage(ChatMessage.MESSAGE,  "~1~"+enviar));
                           }
                           if (msg.contains("~1~")){
                                System.out.println("Tengo la clave AES encriptada");
                                System.out.println("La desencripto con mi clave privada");
+                               String hecho=msg.substring(3);
+                               System.out.println(hecho);
+                               claveAES=desencriptarK(hecho);
                                System.out.println("Ya tengo la clave AES");
                           }
                         if(!msg.equalsIgnoreCase("Eres el primero que chupi")){
@@ -271,6 +300,7 @@ public class Client {
                   if(aux.getType()==3){
 
                     byte[] otro = aux.getContenido();
+                    otro=desencriptarMensajeBytes(otro);
                     System.out.println("Tengo el archivo");
                     File f = new File("C:\\Users\\Pc\\Downloads\\LorikeetFiles"+aux.getMessage());
                     Files.write(f.toPath(), otro);
@@ -317,17 +347,17 @@ public class Client {
         }
     }
 
-    //TODO: pasar por parametro la clave publica del otro usuario y usar esa, no la del propio usuario
-    public static String encriptarK(SecretKey aes) {
+    //TODO: conventir el string en el PublicKey
+    public static String encriptarK(PublicKey clavep) {
         String aesCifrado = null;
         try {
             Cipher cifrado = Cipher.getInstance("RSA");
-            cifrado.init(Cipher.ENCRYPT_MODE, clavePublica); //Le decimos explícitamente que queremos encriptar
+            cifrado.init(Cipher.ENCRYPT_MODE, clavep); //Le decimos explícitamente que queremos encriptar
 
-            aesCifrado = Base64.getEncoder().encodeToString(cifrado.doFinal(aes.getEncoded()));
+            aesCifrado = Base64.getEncoder().encodeToString(cifrado.doFinal(claveAES.getEncoded()));
 
             //Mostramos por pantalla los resultados
-            System.out.println("Clave original: " + aes);
+            System.out.println("Clave original: " + claveAES);
             System.out.println("Clave encriptada: " + aesCifrado);
             System.out.println();
         } catch (Exception ex) {
@@ -338,7 +368,8 @@ public class Client {
     }
 
 
-    public void desencriptarK(String aesCifrado) {
+    public SecretKey desencriptarK(String aesCifrado) {
+      SecretKey claveAESprueba=null;
         try {
             byte[] aesCifradoBytes = Base64.getDecoder().decode(aesCifrado); //La clave en bytes
 
@@ -346,7 +377,7 @@ public class Client {
             cifrado.init(Cipher.DECRYPT_MODE, clavePrivada); //Le decimos explícitamente que queremos encriptar
 
             byte[] descifradaBytes = cifrado.doFinal(aesCifradoBytes);
-            SecretKey claveAESprueba = new SecretKeySpec(descifradaBytes, 0, descifradaBytes.length, "AES");
+            claveAESprueba = new SecretKeySpec(descifradaBytes, 0, descifradaBytes.length, "AES");
 
             //Mostramos por pantalla los resultados
             System.out.println("Clave maestra encriptada: " + aesCifrado);
@@ -356,6 +387,7 @@ public class Client {
         } catch (Exception ex) {
             System.out.println(ex);
         }
+        return claveAESprueba;
     }
 
 
@@ -373,12 +405,12 @@ public class Client {
             System.out.println("Mensaje original: " + textoPlano);
             System.out.println("Mensaje encriptado: " + textoCifrado);
             System.out.println();
-          
+
         } catch (Exception ex) {
             System.out.println(ex);
         }
 
-        return new String(textoCifrado);
+        return textoCifrado;
     }
 
 
@@ -404,6 +436,41 @@ public class Client {
 
         return textoPlano;
     }
+
+
+public static byte[] encriptarMensajeBytes(byte[] textoPlano) {
+  byte[] textoCifrado = null;
+
+  try {
+      //Ahora que tenemos la clave, pasamos a cifrar el mensaje
+      Cipher cifrado = Cipher.getInstance("AES");
+      cifrado.init(Cipher.ENCRYPT_MODE, claveAES); //Le decimos explícitamente que queremos encriptar
+
+      textoCifrado = Base64.getEncoder().encode(cifrado.doFinal(textoPlano));
+
+  } catch (Exception ex) {
+      System.out.println(ex);
+  }
+
+  return textoCifrado;
 }
 
 
+public static byte[] desencriptarMensajeBytes(byte[] textoCifrado) {
+    byte[] textoPlano = null;
+
+    try {
+        //Ahora que tenemos la clave, pasamos a descifrar el mensaje
+        Cipher cifrado = Cipher.getInstance("AES");
+        cifrado.init(Cipher.DECRYPT_MODE, claveAES); //Le decimos explícitamente que queremos desencriptar
+
+        byte[] base64desencriptar = Base64.getDecoder().decode(textoCifrado);
+        textoPlano = cifrado.doFinal(base64desencriptar);
+
+    } catch (Exception ex) {
+        System.out.println(ex);
+    }
+
+    return textoPlano;
+}
+}
