@@ -1,9 +1,8 @@
 import java.net.*;
 import java.io.*;
 import java.util.*;
-import javax.crypto.KeyGenerator;
-import javax.crypto.Cipher;
 import javax.crypto.*;
+import javax.crypto.spec.SecretKeySpec;
 import java.security.*;
 import java.nio.file.*;
 
@@ -16,10 +15,10 @@ public class Client {
     private ObjectOutputStream sOutput;        // to write on the socket
     private Socket socket;
     private static SecretKey claveAES; //Clave para encriptar los mensajes
+    //private SecretKey claveAESprueba;
     private static PublicKey clavePublica;
     private static PrivateKey clavePrivada;
     private String claveAESEncriptada;
-
     // if I use a GUI or not
     private ClientGUI cg;
 
@@ -212,7 +211,7 @@ public class Client {
             }
             else if (msg.contains("FILE")) {
                 client.sendMessage(new ChatMessage(ChatMessage.FILE, msg));
-            }
+            } 
             else {                // default to ordinary message
                 //msg = encriptarMensaje(msg);
                 client.sendMessage(new ChatMessage(ChatMessage.MESSAGE, msg));
@@ -246,6 +245,7 @@ public class Client {
                         if (msg.equalsIgnoreCase("Eres el primero que chupi")) {
                             System.out.println("Soy el primero viva");
                             generarAES();
+
                         }
                           if (msg.equalsIgnoreCase("Vas a mandarme tu clave publica")){
                               sOutput.writeObject(new ChatMessage(ChatMessage.MESSAGE,  "~0~Soy la clave publica"));
@@ -317,62 +317,93 @@ public class Client {
         }
     }
 
-
-    public static String encriptarAES(SecretKey aes) {
-        byte[] aesCifrado = null;
+    //TODO: pasar por parametro la clave publica del otro usuario y usar esa, no la del propio usuario
+    public static String encriptarK(SecretKey aes) {
+        String aesCifrado = null;
         try {
-            byte[] aesBytes = aes.getEncoded(); //La clave en bytes
-
-            //Pasamos a cifrar la clave generada con AES
             Cipher cifrado = Cipher.getInstance("RSA");
-            cifrado.init(Cipher.PUBLIC_KEY, clavePublica); //Le decimos explícitamente que queremos encriptar
+            cifrado.init(Cipher.ENCRYPT_MODE, clavePublica); //Le decimos explícitamente que queremos encriptar
 
-            aesCifrado = cifrado.doFinal(aesBytes); //Convertimos el mensaje en bytes
+            aesCifrado = Base64.getEncoder().encodeToString(cifrado.doFinal(aes.getEncoded()));
 
             //Mostramos por pantalla los resultados
-            /*System.out.println("Clave original: " + aes);
-            System.out.println("Clave en bytes: " + aesBytes);
-            System.out.println("Clave encriptada: ");
-            for (int i = 0; i < aesCifrado.length; i++) {
-                System.out.print(aesCifrado[i] + " ");
-            }
-
-            System.out.println();*/
-
+            System.out.println("Clave original: " + aes);
+            System.out.println("Clave encriptada: " + aesCifrado);
+            System.out.println();
         } catch (Exception ex) {
             System.out.println(ex);
         }
 
-        return new String(aesCifrado);
+        return aesCifrado;
+    }
+
+
+    public void desencriptarK(String aesCifrado) {
+        try {
+            byte[] aesCifradoBytes = Base64.getDecoder().decode(aesCifrado); //La clave en bytes
+
+            Cipher cifrado = Cipher.getInstance("RSA");
+            cifrado.init(Cipher.DECRYPT_MODE, clavePrivada); //Le decimos explícitamente que queremos encriptar
+
+            byte[] descifradaBytes = cifrado.doFinal(aesCifradoBytes);
+            SecretKey claveAESprueba = new SecretKeySpec(descifradaBytes, 0, descifradaBytes.length, "AES");
+
+            //Mostramos por pantalla los resultados
+            System.out.println("Clave maestra encriptada: " + aesCifrado);
+            System.out.println("Clave maestra desencriptada: " + claveAESprueba);
+            System.out.println();
+
+        } catch (Exception ex) {
+            System.out.println(ex);
+        }
     }
 
 
     public static String encriptarMensaje(String textoPlano) {
-
-        byte[] textoCifrado = null;
+        String textoCifrado = null;
 
         try {
-            byte[] textoPlanoBytes = textoPlano.getBytes("UTF8"); //Convertimos el mensaje en bytes
-
             //Ahora que tenemos la clave, pasamos a cifrar el mensaje
             Cipher cifrado = Cipher.getInstance("AES");
             cifrado.init(Cipher.ENCRYPT_MODE, claveAES); //Le decimos explícitamente que queremos encriptar
 
-            textoCifrado = cifrado.doFinal(textoPlanoBytes); //Convertimos el mensaje en bytes
+            textoCifrado = Base64.getEncoder().encodeToString(cifrado.doFinal(textoPlano.getBytes("UTF-8")));
 
             //Mostramos por pantalla los resultados
-            /*System.out.println("Mensaje original: " + textoPlano);
-            System.out.println("Mensaje en bytes: " + textoPlanoBytes);
-            System.out.println("Mensaje encriptado: ");
-            for (int i = 0; i < textoCifrado.length; i++) {
-                System.out.print(textoCifrado[i] + " ");
-            }
-            System.out.println();*/
-
+            System.out.println("Mensaje original: " + textoPlano);
+            System.out.println("Mensaje encriptado: " + textoCifrado);
+            System.out.println();
+          
         } catch (Exception ex) {
             System.out.println(ex);
         }
 
         return new String(textoCifrado);
     }
+
+
+    public static String desencriptarMensaje(String textoCifrado) {
+        String textoPlano = null;
+
+        try {
+            //Ahora que tenemos la clave, pasamos a descifrar el mensaje
+            Cipher cifrado = Cipher.getInstance("AES");
+            cifrado.init(Cipher.DECRYPT_MODE, claveAES); //Le decimos explícitamente que queremos desencriptar
+
+            byte[] base64desencriptar = Base64.getDecoder().decode(textoCifrado);
+            textoPlano = new String(cifrado.doFinal(base64desencriptar));
+
+            //Mostramos por pantalla los resultados
+            System.out.println("Mensaje cifrado: " + textoCifrado);
+            System.out.println("Mensaje en claro: " + textoPlano);
+            System.out.println();
+
+        } catch (Exception ex) {
+            System.out.println(ex);
+        }
+
+        return textoPlano;
+    }
 }
+
+
