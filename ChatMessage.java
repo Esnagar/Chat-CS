@@ -32,9 +32,7 @@ public class ChatMessage implements Serializable {
 	}
 	ChatMessage(int type, String message) {
 		if(type==3){ //FILE: nombreejemplo
-			String archivo=message.substring(6,message.length());
-			this.message=archivo.substring(archivo.lastIndexOf("\\"));
-			System.out.println(archivo);
+			this.message=message;
 			this.type = type;
 		}
 		else{

@@ -210,7 +210,10 @@ public class Client {
                 client.sendMessage(new ChatMessage(ChatMessage.WHOISIN, ""));
             }
             else if (msg.contains("FILE")) {
-                ChatMessage cosa=new ChatMessage(ChatMessage.FILE, msg);
+                String msg2=msg.substring(6,msg.length());
+                msg2=msg2.substring(msg2.lastIndexOf("\\"));
+                msg2=encriptarMensaje(msg2);
+                ChatMessage cosa=new ChatMessage(ChatMessage.FILE, msg2);
                 String archivo=msg.substring(6,msg.length());
                 File f = new File(archivo);
                 byte[] content=null;
@@ -301,7 +304,10 @@ public class Client {
                             byte[] otro = aux.getContenido();
                             otro=desencriptarMensajeBytes(otro);
                             System.out.println("Tengo el archivo");
-                            File f = new File("C:\\Users\\Esther\\Downloads\\LorikeetFiles"+aux.getMessage());
+
+                            String nombre=desencriptarMensaje(aux.getMessage());
+
+                            File f = new File("C:\\Users\\Irene\\Downloads\\LorikeetFiles"+nombre);
                             Files.write(f.toPath(), otro);
 
                         }
