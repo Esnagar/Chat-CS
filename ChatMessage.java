@@ -16,11 +16,14 @@ public class ChatMessage implements Serializable {
 	// MESSAGE an ordinary message
 	// LOGOUT to disconnect from the Server
 	//FILE contains a FILE
-	static final int WHOISIN = 0, MESSAGE = 1, LOGOUT = 2, FILE = 3, KEY = 4, CIPHERMESSAGE = 5;
+	static final int WHOISIN = 0, MESSAGE = 1, LOGOUT = 2, FILE = 3, KEY = 4, CIPHERMESSAGE = 5,LOGIN = 6, REGISTRO = 7;
 	private int type;
 	private String message;
 	private byte[] contenido;
 	private PublicKey clave;
+	//login y registro
+	private String nickname;
+	private String pass;
 
 	// constructor
 	ChatMessage(int type, PublicKey clave){
@@ -28,6 +31,13 @@ public class ChatMessage implements Serializable {
 			this.type = type;
 			this.message = "~0~";
 			this.clave=clave;
+		}
+	}
+	ChatMessage(int type, String nickname, String pass){
+		if(type==6 || type==7){
+			this.type = type;
+			this.nickname = nickname;
+			this.pass=pass;
 		}
 	}
 	ChatMessage(int type, String message) {
@@ -50,6 +60,12 @@ public class ChatMessage implements Serializable {
 	}
 	String getMessage() {
 		return message;
+	}
+	String getNickname() {
+		return nickname;
+	}
+	String getPass() {
+		return pass;
 	}
 	byte[] getContenido(){
 		return contenido;

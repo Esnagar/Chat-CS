@@ -257,6 +257,7 @@ public class Client {
                                 String msg=aux.getMessage();
                                 msg=desencriptarMensaje(msg);
                                 System.out.println(msg);
+                                display(msg);
                             }
                         }
                         if(aux.getType()==1 || aux.getType()==4){
